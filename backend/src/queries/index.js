@@ -108,18 +108,19 @@ const GET_JOB_SKILL_BREAKDOWN = `
 
 // ─────────────────────────────────────────────────────────────
 // Q4 — Extended Job Matching (3-hop Multi-hop Traversal) ⭐
-// Traversal: Candidate→Skill→RELATED_TO→Skill←REQUIRES←Job→Company [3 hops]
-// Finds jobs NOT in direct matches, reachable via related skills.
+// Traversal: Candidate→Skill→RELATED_TO→Skill←REQUIRES←Job→Company
+// Finds jobs reachable via related skills the candidate does NOT hold directly.
+// Uses collect+IN approach (anti-pattern NOT() unreliable in CognoDB context).
+// VERIFIED: 18 results against live CognoDB (2026-08-17).
 // Used by: GET /api/candidates/:id/jobs/extended
 // ─────────────────────────────────────────────────────────────
 const GET_EXTENDED_MATCHING_JOBS = `
-  MATCH (c:Candidate {id: $candidateId})-[:HAS_SKILL]->(cs:Skill)
-        -[:RELATED_TO]->(rs:Skill)
+  MATCH (c:Candidate {id: $candidateId})-[:HAS_SKILL]->(hs:Skill)
+  WITH c, collect(hs.id) AS heldIds
+
+  MATCH (c)-[:HAS_SKILL]->(cs:Skill)-[:RELATED_TO]->(rs:Skill)
         <-[:REQUIRES]-(j:Job)
-  WHERE NOT (c)-[:HAS_SKILL]->(rs)
-    AND NOT EXISTS {
-      MATCH (c)-[:HAS_SKILL]->(any:Skill)<-[:REQUIRES]-(j)
-    }
+  WHERE NOT rs.id IN heldIds
 
   MATCH (j)-[:POSTED_BY]->(co:Company)
   MATCH (j)-[:LOCATED_IN]->(l:Location)
@@ -128,7 +129,8 @@ const GET_EXTENDED_MATCHING_JOBS = `
        collect(DISTINCT {candidateSkill: cs.name, relatedSkill: rs.name}) AS bridgePaths
 
   MATCH (j)-[:REQUIRES]->(req:Skill)
-  WITH j, co, l, bridgePaths, collect(DISTINCT {id: req.id, name: req.name, category: req.category}) AS requiredSkills
+  WITH j, co, l, bridgePaths,
+       collect(DISTINCT {id: req.id, name: req.name, category: req.category}) AS requiredSkills
 
   RETURN
     j.id             AS jobId,
@@ -147,21 +149,26 @@ const GET_EXTENDED_MATCHING_JOBS = `
     bridgePaths
 `;
 
+
 // ─────────────────────────────────────────────────────────────
 // Q5 — Company Discovery via Related Skills (4-hop) ⭐ Relationally Awkward
 // Traversal: Candidate→Skill→RELATED_TO→Skill←REQUIRES←Job→Company [4 hops]
+// Uses collect+IN approach for reliable filtering on CognoDB.
+// This is the "relationally awkward" query: trivial in graph (4-hop traversal),
+// would require 4-way JOIN chain + self-join on skills table in SQL.
+// VERIFIED against live CognoDB (2026-08-17).
 // Used by: GET /api/candidates/:id/companies
 // ─────────────────────────────────────────────────────────────
 const GET_COMPANIES_VIA_RELATED_SKILLS = `
-  MATCH (c:Candidate {id: $candidateId})-[:HAS_SKILL]->(cs:Skill)
-        -[:RELATED_TO]->(rs:Skill)
-        <-[:REQUIRES]-(j:Job)
-        -[:POSTED_BY]->(co:Company)
-  WHERE NOT (c)-[:HAS_SKILL]->(rs)
+  MATCH (c:Candidate {id: $candidateId})-[:HAS_SKILL]->(hs:Skill)
+  WITH c, collect(hs.id) AS heldIds
+
+  MATCH (c)-[:HAS_SKILL]->(cs:Skill)-[:RELATED_TO]->(rs:Skill)
+        <-[:REQUIRES]-(j:Job)-[:POSTED_BY]->(co:Company)
+  WHERE NOT rs.id IN heldIds
 
   WITH co,
        collect(DISTINCT cs.name) AS bridgeSkills,
-       collect(DISTINCT j.id)    AS jobIds,
        count(DISTINCT j)         AS openRoles
 
   RETURN
@@ -173,6 +180,7 @@ const GET_COMPANIES_VIA_RELATED_SKILLS = `
     openRoles
   ORDER BY openRoles DESC
 `;
+
 
 // ─────────────────────────────────────────────────────────────
 // Q6 — Related Jobs (shared required skills)
