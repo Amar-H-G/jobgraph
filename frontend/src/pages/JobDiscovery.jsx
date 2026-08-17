@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useFetch } from '../hooks/useFetch';
 import { getDirectJobs, getExtendedJobs } from '../api';
 import { JobCard } from '../components/JobCard';
-import { Spinner, EmptyState, ErrorState, SkeletonCard } from '../components/States';
+import { EmptyState, ErrorState, SkeletonCard } from '../components/States';
 
 const CANDIDATE_ID = 'alex-chen';
 

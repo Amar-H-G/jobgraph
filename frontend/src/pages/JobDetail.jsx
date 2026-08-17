@@ -2,7 +2,7 @@ import { useParams, useSearchParams, Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { getJob, getJobMatch, getRelatedJobs } from '../api';
 import { SkillChip, MatchBar, MatchLabel } from '../components/SkillChip';
-import { Spinner, EmptyState, ErrorState, SkeletonCard } from '../components/States';
+import { EmptyState, ErrorState, SkeletonCard } from '../components/States';
 
 export default function JobDetail() {
   const { id }             = useParams();

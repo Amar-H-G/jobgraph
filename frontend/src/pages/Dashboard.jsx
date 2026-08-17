@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useFetch } from '../hooks/useFetch';
 import { getCandidate, getDirectJobs, getExtendedJobs, getRelatedCompanies } from '../api';
-import { SkillChip } from '../components/SkillChip';
 import { JobCard } from '../components/JobCard';
-import { Spinner, ErrorState, SkeletonCard } from '../components/States';
+import { ErrorState, SkeletonCard } from '../components/States';
 
 const CANDIDATE_ID = 'alex-chen';
 
