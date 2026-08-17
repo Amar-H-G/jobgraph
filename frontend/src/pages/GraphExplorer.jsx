@@ -40,11 +40,11 @@ function GraphCanvas({ nodes, edges }) {
   const simulate = useCallback(() => {
     const pos = posRef.current;
     const vel = velRef.current;
-    const alpha = 0.05;
-    const repulsion = 3000;
-    const springLen = 150;
-    const springK   = 0.03;
-    const damping   = 0.85;
+    const alpha = 0.06;
+    const repulsion = 6500;
+    const springLen = 170;
+    const springK   = 0.025;
+    const damping   = 0.82;
 
     // Repulsion between all pairs
     for (let i = 0; i < nodes.length; i++) {
@@ -82,8 +82,8 @@ function GraphCanvas({ nodes, edges }) {
     // Center gravity
     nodes.forEach(n => {
       if (!pos[n.id]) return;
-      vel[n.id].x += (500 - pos[n.id].x) * 0.002;
-      vel[n.id].y += (350 - pos[n.id].y) * 0.002;
+      vel[n.id].x += (600 - pos[n.id].x) * 0.0018;
+      vel[n.id].y += (375 - pos[n.id].y) * 0.0018;
     });
 
     // Apply velocities + damping
@@ -183,7 +183,9 @@ function GraphCanvas({ nodes, edges }) {
 
   function toCanvas(e) {
     const rect = canvasRef.current.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const scaleX = canvasRef.current.width / rect.width;
+    const scaleY = canvasRef.current.height / rect.height;
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
   }
 
   function onMouseDown(e) {
@@ -206,9 +208,9 @@ function GraphCanvas({ nodes, edges }) {
     <div style={{ position: 'relative' }}>
       <canvas
         ref={canvasRef}
-        width={1000}
-        height={700}
-        style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg-surface)', cursor: 'default', maxHeight: '70vh' }}
+        width={1200}
+        height={750}
+        style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg-surface)', cursor: 'default', maxHeight: '72vh' }}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}

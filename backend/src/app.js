@@ -34,6 +34,19 @@ app.use('/api/candidates', candidateRoutes);
 app.use('/api/jobs',       jobRoutes);
 app.use('/api/graph',      graphRoutes);
 
+// ── Static Frontend (Production) ────────────────────────────
+const path = require('path');
+const fs   = require('fs');
+const distPath = path.join(__dirname, '../../frontend/dist');
+
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) return next();
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
+
 // ── 404 ─────────────────────────────────────────────────────
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found.' });
