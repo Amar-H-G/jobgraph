@@ -29,26 +29,21 @@ export default function Dashboard() {
   return (
     <div>
       {/* ── Profile Card ── */}
-      <div className="card" style={{ marginBottom: '2rem', display: 'flex', gap: '1.5rem', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+      <div className="card profile-card" style={{ marginBottom: '2rem' }}>
         {candidate.loading && <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}><div className="spinner" /><span style={{ color: 'var(--text-muted)' }}>Loading profile…</span></div>}
         {candidate.error  && <ErrorState message={candidate.error} onRetry={candidate.refetch} />}
         {candidate.data && (
-          <>
+          <div className="profile-header">
             {/* Avatar */}
-            <div style={{
-              width: 72, height: 72, borderRadius: '50%',
-              background: 'linear-gradient(135deg, var(--accent), var(--purple))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '1.75rem', fontWeight: 800, flexShrink: 0,
-            }}>
+            <div className="profile-avatar">
               {candidate.data.name.split(' ').map(n => n[0]).join('')}
             </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: '1.5rem', fontWeight: 800, letterSpacing: '-0.03em' }}>{candidate.data.name}</div>
-              <div style={{ color: 'var(--text-secondary)', fontWeight: 500, marginBottom: '0.375rem' }}>{candidate.data.title}</div>
-              <div style={{ fontSize: '0.875rem', color: 'var(--text-muted)', maxWidth: 600 }}>{candidate.data.bio}</div>
+            <div className="profile-info">
+              <div className="profile-name">{candidate.data.name}</div>
+              <div className="profile-title">{candidate.data.title}</div>
+              <div className="profile-bio">{candidate.data.bio}</div>
               {candidate.data.preferredLocations?.length > 0 && (
-                <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <div className="profile-locations">
                   <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>📍 Prefers:</span>
                   {candidate.data.preferredLocations.map(l => (
                     <span key={l.id} className="chip chip-default">{l.remote ? 'Remote' : l.city}</span>
@@ -56,7 +51,7 @@ export default function Dashboard() {
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
       </div>
 
@@ -86,7 +81,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="dashboard-layout">
         {/* ── Left column ── */}
         <div>
           {/* Skills */}
@@ -110,7 +105,7 @@ export default function Dashboard() {
 
           {/* Top matching jobs */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
               <div className="section-title" style={{ marginBottom: 0 }}>Top Matches</div>
               <Link to="/jobs" className="btn btn-ghost" style={{ fontSize: '0.8125rem' }}>View all →</Link>
             </div>
@@ -151,13 +146,6 @@ export default function Dashboard() {
           )}
         </div>
       </div>
-
-      {/* Mobile: stack columns */}
-      <style>{`
-        @media (max-width: 900px) {
-          .dashboard-cols { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }

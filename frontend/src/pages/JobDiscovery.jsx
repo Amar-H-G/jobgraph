@@ -14,7 +14,6 @@ function FilterBar({ filters, onChange }) {
         placeholder="Search job title…"
         value={filters.title}
         onChange={e => onChange({ ...filters, title: e.target.value })}
-        style={{ flex: 1, minWidth: 200 }}
       />
       <select className="select" value={filters.employmentType} onChange={e => onChange({ ...filters, employmentType: e.target.value })}>
         <option value="">All Types</option>

@@ -60,7 +60,7 @@ export default function JobDetail() {
         <p style={{ fontSize: '0.9375rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>{j.description}</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="job-detail-grid">
         {/* ── Left: skill breakdown ── */}
         <div>
           <div className="card" style={{ marginBottom: '1.5rem' }}>
@@ -130,9 +130,9 @@ export default function JobDetail() {
           {/* Graph path */}
           <div className="card" style={{ marginBottom: '1.5rem', background: 'rgba(99,102,241,0.05)', borderColor: 'rgba(99,102,241,0.25)' }}>
             <div style={{ fontWeight: 700, marginBottom: '0.75rem', color: 'var(--accent)' }}>🔀 How you're connected</div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.375rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+            <div className="graph-path-breadcrumb">
               <span className="chip chip-blue">Alex Chen</span>
-              <span style={{ color: 'var(--text-muted)' }}>→ HAS_SKILL →</span>
+              <span className="breadcrumb-arrow">→ HAS_SKILL →</span>
               {matchingSkills.length > 0
                 ? matchingSkills.slice(0, 2).map(s => (
                     <span key={s.id} className="chip chip-green">{s.name}</span>
@@ -143,13 +143,13 @@ export default function JobDetail() {
               }
               {closeSkills.length > 0 && matchingSkills.length === 0 && (
                 <>
-                  <span style={{ color: 'var(--text-muted)' }}>→ RELATED_TO →</span>
+                  <span className="breadcrumb-arrow">→ RELATED_TO →</span>
                   {closeSkills.slice(0, 1).map(s => <span key={s.id} className="chip chip-purple">{s.name}</span>)}
                 </>
               )}
-              <span style={{ color: 'var(--text-muted)' }}>← REQUIRES ←</span>
+              <span className="breadcrumb-arrow">← REQUIRES ←</span>
               <span className="chip chip-amber">{j.title}</span>
-              <span style={{ color: 'var(--text-muted)' }}>→ POSTED_BY →</span>
+              <span className="breadcrumb-arrow">→ POSTED_BY →</span>
               <span className="chip chip-default">{j.company?.name}</span>
             </div>
           </div>
@@ -180,12 +180,6 @@ export default function JobDetail() {
           ))}
         </div>
       </div>
-
-      <style>{`
-        @media (max-width: 750px) {
-          .job-detail-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 }

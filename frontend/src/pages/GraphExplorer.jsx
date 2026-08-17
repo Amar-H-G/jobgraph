@@ -17,6 +17,7 @@ const LEGEND = Object.entries(NODE_COLORS);
 // Simple canvas-based graph renderer (no external lib needed for basic graph)
 function GraphCanvas({ nodes, edges }) {
   const canvasRef   = useRef(null);
+  const containerRef= useRef(null);
   const posRef      = useRef({});  // node positions
   const velRef      = useRef({});  // velocities
   const rafRef      = useRef(null);
@@ -26,11 +27,11 @@ function GraphCanvas({ nodes, edges }) {
   // Initialize positions in a circle
   useEffect(() => {
     if (!nodes.length) return;
-    const cx = 500, cy = 350;
+    const cx = 600, cy = 375;
     nodes.forEach((n, i) => {
       if (!posRef.current[n.id]) {
         const angle = (2 * Math.PI * i) / nodes.length;
-        const r = 200 + Math.random() * 100;
+        const r = 180 + Math.random() * 80;
         posRef.current[n.id] = { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) };
         velRef.current[n.id] = { x: 0, y: 0 };
       }
@@ -169,70 +170,85 @@ function GraphCanvas({ nodes, edges }) {
     return () => cancelAnimationFrame(rafRef.current);
   }, [simulate, draw]);
 
-  // Mouse interactions
+  // Mouse & Touch interactions
   function getNodeAt(x, y) {
     const pos = posRef.current;
     for (const n of nodes) {
       const p = pos[n.id];
       if (!p) continue;
-      const r = n.label === 'Candidate' ? 18 : 14;
+      const r = n.label === 'Candidate' ? 22 : 18;
       if (Math.sqrt((x-p.x)**2 + (y-p.y)**2) < r) return n;
     }
     return null;
   }
 
-  function toCanvas(e) {
+  function toCanvas(clientX, clientY) {
     const rect = canvasRef.current.getBoundingClientRect();
     const scaleX = canvasRef.current.width / rect.width;
     const scaleY = canvasRef.current.height / rect.height;
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+    return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
   }
 
-  function onMouseDown(e) {
-    const { x, y } = toCanvas(e);
+  function handleStart(clientX, clientY) {
+    const { x, y } = toCanvas(clientX, clientY);
     const n = getNodeAt(x, y);
-    if (n) { dragRef.current = { id: n.id }; setSelected(n); }
-    else setSelected(null);
+    if (n) {
+      dragRef.current = { id: n.id };
+      setSelected(n);
+    } else {
+      setSelected(null);
+    }
   }
 
-  function onMouseMove(e) {
+  function handleMove(clientX, clientY) {
     if (!dragRef.current) return;
-    const { x, y } = toCanvas(e);
+    const { x, y } = toCanvas(clientX, clientY);
     posRef.current[dragRef.current.id] = { x, y };
   }
 
-  function onMouseUp()   { dragRef.current = null; }
-  function onMouseLeave(){ dragRef.current = null; }
+  function handleEnd() {
+    dragRef.current = null;
+  }
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div ref={containerRef} className="graph-canvas-wrapper" style={{ position: 'relative' }}>
       <canvas
         ref={canvasRef}
         width={1200}
         height={750}
-        style={{ width: '100%', height: 'auto', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg-surface)', cursor: 'default', maxHeight: '72vh' }}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseUp={onMouseUp}
-        onMouseLeave={onMouseLeave}
+        className="graph-canvas"
+        onMouseDown={e => handleStart(e.clientX, e.clientY)}
+        onMouseMove={e => handleMove(e.clientX, e.clientY)}
+        onMouseUp={handleEnd}
+        onMouseLeave={handleEnd}
+        onTouchStart={e => {
+          if (e.touches.length > 0) {
+            handleStart(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }}
+        onTouchMove={e => {
+          if (e.touches.length > 0) {
+            handleMove(e.touches[0].clientX, e.touches[0].clientY);
+          }
+        }}
+        onTouchEnd={handleEnd}
+        onTouchCancel={handleEnd}
       />
 
       {/* Selected node panel */}
       {selected && (
-        <div style={{
-          position: 'absolute', top: 12, right: 12,
-          background: 'var(--bg-elevated)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius)',
-          padding: '1rem',
-          minWidth: 200,
-          boxShadow: 'var(--shadow)',
-        }}>
+        <div className="graph-inspector-panel">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: '0.6875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.06em', color: NODE_COLORS[selected.label] }}>
               {selected.label}
             </span>
-            <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1rem' }}>✕</button>
+            <button
+              onClick={() => setSelected(null)}
+              aria-label="Close inspector"
+              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '1.125rem', padding: '0 4px' }}
+            >
+              ✕
+            </button>
           </div>
           <div style={{ fontWeight: 700, fontSize: '0.9375rem', color: 'var(--text-primary)', marginBottom: '0.25rem' }}>{selected.name}</div>
           {selected.category && <div style={{ fontSize: '0.8125rem', color: 'var(--text-secondary)' }}>Category: {selected.category}</div>}
@@ -253,16 +269,16 @@ export default function GraphExplorer() {
       </div>
 
       {/* Legend */}
-      <div className="card" style={{ marginBottom: '1.5rem', padding: '0.875rem 1.25rem' }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center' }}>
+      <div className="card graph-legend-card" style={{ marginBottom: '1.5rem', padding: '0.875rem 1.25rem' }}>
+        <div className="graph-legend-content">
           <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 600 }}>NODE TYPES:</span>
           {LEGEND.map(([label, color]) => (
-            <span key={label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem' }}>
+            <span key={label} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem' }}>
               <span style={{ width: 12, height: 12, borderRadius: '50%', background: color, display: 'inline-block' }} />
               {label}
             </span>
           ))}
-          <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-muted)' }}>Click a node to inspect · Drag to reposition</span>
+          <span className="graph-legend-hint">Click a node to inspect · Drag to reposition</span>
         </div>
       </div>
 
@@ -270,7 +286,7 @@ export default function GraphExplorer() {
       <div className="card" style={{ marginBottom: '1.5rem', background: 'rgba(99,102,241,0.05)', borderColor: 'rgba(99,102,241,0.25)', padding: '1rem 1.25rem' }}>
         <div style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', lineHeight: 1.7 }}>
           <strong style={{ color: 'var(--accent)' }}>Graph Traversal Paths shown:</strong>
-          <div style={{ marginTop: '0.5rem', fontFamily: 'monospace', fontSize: '0.8125rem', color: 'var(--text-muted)', lineHeight: 2 }}>
+          <div className="traversal-path-code">
             <span style={{ color: '#6366f1' }}>Candidate</span> →HAS_SKILL→ <span style={{ color: '#10b981' }}>Skill</span> →RELATED_TO→ <span style={{ color: '#10b981' }}>Related Skill</span> ←REQUIRES← <span style={{ color: '#f59e0b' }}>Job</span> →POSTED_BY→ <span style={{ color: '#a855f7' }}>Company</span>
           </div>
           This 4-hop path reveals opportunities beyond direct skill matching.
