@@ -189,7 +189,7 @@ npm install
 npm run dev
 ```
 
-Open [[http://localhost:5173](https://jobgraph-kappa.vercel.app/)](https://jobgraph-kappa.vercel.app/) in your browser.
+Open [(https://jobgraph-kappa.vercel.app/)](https://jobgraph-kappa.vercel.app/) in your browser.
 
 ---
 
