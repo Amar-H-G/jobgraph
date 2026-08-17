@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "verify": "node scripts/verify-queries.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
