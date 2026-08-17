@@ -3,7 +3,7 @@ services:
     name: jobgraph
     env: node
     plan: free
-    buildCommand: npm install && npm run build
+    buildCommand: npm run install:all && npm run build
     startCommand: npm start
     envVars:
       - key: NODE_ENV
