@@ -13,8 +13,10 @@ function getDriver() {
     }
 
     driver = neo4j.driver(uri, neo4j.auth.basic(username, password), {
-      maxConnectionPoolSize: 10,
-      connectionAcquisitionTimeout: 10000,
+      maxConnectionPoolSize: 25,
+      connectionAcquisitionTimeout: 15000,
+      maxConnectionLifetime: 60 * 60 * 1000, // 1 hour
+      connectionTimeout: 15000,
     });
   }
   return driver;

@@ -158,7 +158,7 @@ cp .env.example .env
 
 Edit `backend/.env` with your CognoDB connection string:
 ```env
-COGNODB_URI=bolt+s://<instance-id>.databases.cognodb.com
+COGNODB_URI=bolt+s://<instance-id>.databases.cognodb.cloud
 COGNODB_USERNAME=cognodb
 COGNODB_PASSWORD=<your-password>
 PORT=4000
